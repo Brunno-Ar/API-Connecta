@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Interaction {
+  id              String                 @id @default(uuid()) @db.Uuid
+  externalEventId String?                @unique @map("external_event_id") @db.VarChar(200)
+  contactId       String                 @map("contact_id") @db.VarChar(200)
+  botId           String                 @map("bot_id") @db.VarChar(200)
+  rawPayload      Json                   @map("raw_payload")
+  receivedAt      DateTime               @default(now()) @map("received_at") @db.Timestamptz(3)
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  selections      InteractionSelection[]
+
+  @@index([botId, receivedAt])
+  @@index([contactId, receivedAt])
+  @@index([receivedAt])
+  @@map("interactions")
+}
+
+model InteractionSelection {
+  id            String      @id @default(uuid()) @db.Uuid
+  interactionId String      @map("interaction_id") @db.Uuid
+  key           String      @db.VarChar(100)
+  value         Json
+  valueText     String?     @map("value_text") @db.VarChar(500)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  interaction   Interaction @relation(fields: [interactionId], references: [id], onDelete: Cascade)
+
+  @@unique([interactionId, key])
+  @@index([key, valueText])
+  @@index([interactionId])
+  @@map("interaction_selections")
+}
