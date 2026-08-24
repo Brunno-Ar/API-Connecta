@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: connecta
+      POSTGRES_PASSWORD: connecta
+      POSTGRES_DB: connecta_metrics
+    ports:
+      - '5432:5432'
+    volumes:
+      - connecta_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U connecta -d connecta_metrics']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  connecta_postgres_data:
