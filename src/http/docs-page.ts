@@ -147,7 +147,7 @@ const docsPageHtml = String.raw`<!doctype html>
         <main class="content">
           <header class="hero" id="inicio">
             <div class="eyebrow">Documentação oficial</div>
-            <h1>Uma URL para receber. <span>Uma API para consultar.</span></h1>
+            <h1>Uma API para consultar.</h1>
             <p class="hero-copy">O Connecta envia as escolhas feitas ao final da trilha do bot. A API valida, organiza e salva cada interação para o seu site consultar com segurança.</p>
             <div class="badges"><span class="badge"><span class="dot" id="statusDot"></span><span id="statusText">Verificando API...</span></span><span class="badge">JSON</span><span class="badge">HTTPS</span><span class="badge">PostgreSQL · Neon</span></div>
           </header>
