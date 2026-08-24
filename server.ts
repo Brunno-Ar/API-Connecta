@@ -1,6 +1,7 @@
-import 'fastify';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { loadEnvFile } from 'node:process';
-import { buildApp } from './src/app.js';
+import Fastify from 'fastify';
+import { buildApp } from './src/create-app.js';
 import { loadConfig } from './src/config/env.js';
 
 try {
@@ -9,6 +10,10 @@ try {
   if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
 }
 
-const app = buildApp({ config: loadConfig() });
+export const app = buildApp({ config: loadConfig() }, Fastify);
+const ready = app.ready();
 
-export default app;
+export default async function handler(request: IncomingMessage, response: ServerResponse) {
+  await ready;
+  app.server.emit('request', request, response);
+}

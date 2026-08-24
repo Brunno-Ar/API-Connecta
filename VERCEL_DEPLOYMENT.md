@@ -15,7 +15,9 @@ Há duas formas de publicar:
 - enviar este projeto para GitHub, GitLab ou Bitbucket e importá-lo no dashboard da Vercel;
 - executar `npx vercel` nesta pasta e seguir o login interativo.
 
-A Vercel reconhece o `server.ts` da raiz como entrada Fastify. Ele exporta diretamente a aplicação criada em `src/app.ts`, evitando que a fábrica interna seja confundida com o entrypoint. Não é necessário criar `vercel.json`, pasta `api` ou projeto Next.js. Não configure Build Command nem Output Directory manualmente.
+A Vercel reconhece o `server.ts` da raiz como entrada. Ele exporta um handler Node explícito que encaminha cada requisição para a aplicação criada em `src/create-app.ts`, evitando que a fábrica interna seja confundida com o entrypoint ou que a plataforma precise inferir o formato do servidor. Não é necessário criar `vercel.json`, pasta `api` ou projeto Next.js. Não configure Build Command nem Output Directory manualmente.
+
+O script `vercel-build` aplica as migrations pendentes com `prisma migrate deploy` antes de compilar. O comando é idempotente e usa o `DATABASE_URL` configurado no ambiente do deploy.
 
 ## 3. Variáveis de ambiente
 

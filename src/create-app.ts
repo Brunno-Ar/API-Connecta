@@ -18,8 +18,11 @@ export interface BuildAppOptions {
   logger?: boolean;
 }
 
-export function buildApp(options: BuildAppOptions): FastifyInstance {
-  const app = Fastify({
+export function buildApp(
+  options: BuildAppOptions,
+  fastify: typeof Fastify = Fastify,
+): FastifyInstance {
+  const app = fastify({
     logger: options.logger === false ? false : { level: options.config.logLevel },
     bodyLimit: options.config.bodyLimit,
     requestIdHeader: 'x-request-id',

@@ -1,5 +1,6 @@
 import { loadEnvFile } from 'node:process';
-import { buildApp } from './app.js';
+import Fastify from 'fastify';
+import { buildApp } from './create-app.js';
 import { loadConfig } from './config/env.js';
 
 try {
@@ -10,7 +11,7 @@ try {
 
 async function main() {
   const config = loadConfig();
-  const app = buildApp({ config });
+  const app = buildApp({ config }, Fastify);
 
   const shutdown = async (signal: string) => {
     app.log.info({ event: 'shutdown_started', signal });

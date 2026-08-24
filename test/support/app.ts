@@ -1,4 +1,4 @@
-import { buildApp } from '../../src/app.js';
+import { buildApp } from '../../src/create-app.js';
 import type { AppConfig } from '../../src/config/env.js';
 import { MemoryInteractionRepository } from './memory-repository.js';
 

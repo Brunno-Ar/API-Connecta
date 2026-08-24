@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { buildApp } from '../../src/app.js';
+import { buildApp } from '../../src/create-app.js';
 import type { AppConfig } from '../../src/config/env.js';
 
 describe('PostgreSQL end-to-end flow', () => {

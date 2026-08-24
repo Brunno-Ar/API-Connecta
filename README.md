@@ -227,7 +227,7 @@ O E2E inicia um container PostgreSQL exclusivo, aplica a migration e valida `HTT
 
 ### Vercel
 
-A Vercel detecta o `server.ts` da raiz como aplicação Fastify e a executa como uma Function. Esse entrypoint exporta a instância pronta e evita ambiguidade com a fábrica interna `src/app.ts`. Não configure Build Command ou Output Directory manualmente. O script `postinstall` gera o Prisma Client durante cada build.
+A Vercel detecta o `server.ts` da raiz e o executa como uma Function. Esse entrypoint exporta um handler Node explícito que encaminha a requisição para a instância Fastify, evitando dependência da inferência estática da plataforma e ambiguidade com a fábrica interna `src/create-app.ts`. Não configure Build Command ou Output Directory manualmente. O script `postinstall` gera o Prisma Client durante cada build.
 
 Use um PostgreSQL gerenciado com connection pooling, como Prisma Postgres, Neon ou Supabase. O PostgreSQL do `docker-compose.yml` é somente local.
 
