@@ -13,6 +13,8 @@ const envSchema = z
     DATABASE_URL: z.string().min(1),
     CONNECTA_CX_API_KEY: z.string().min(24).optional(),
     AUTH_REQUIRED: booleanFromString,
+    ADMIN_API_KEY: z.string().min(24).optional(),
+    ADMIN_AUTH_REQUIRED: booleanFromString,
     REQUIRE_EVENT_ID: z
       .enum(['true', 'false'])
       .default('false')
@@ -33,6 +35,13 @@ const envSchema = z
         message: 'CONNECTA_CX_API_KEY is required when AUTH_REQUIRED=true',
       });
     }
+    if (env.ADMIN_AUTH_REQUIRED && !env.ADMIN_API_KEY && !env.CONNECTA_CX_API_KEY) {
+      context.addIssue({
+        code: 'custom',
+        path: ['ADMIN_API_KEY'],
+        message: 'ADMIN_API_KEY or CONNECTA_CX_API_KEY is required when ADMIN_AUTH_REQUIRED=true',
+      });
+    }
   });
 
 export type AppConfig = {
@@ -42,6 +51,8 @@ export type AppConfig = {
   databaseUrl: string;
   apiKey?: string;
   authRequired: boolean;
+  adminApiKey?: string;
+  adminAuthRequired: boolean;
   requireEventId: boolean;
   bodyLimit: number;
   rateLimitMax: number;
@@ -52,6 +63,7 @@ export type AppConfig = {
 
 export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppConfig {
   const env = envSchema.parse(environment);
+  const adminApiKey = env.ADMIN_API_KEY ?? env.CONNECTA_CX_API_KEY;
   return {
     nodeEnv: env.NODE_ENV,
     host: env.HOST,
@@ -59,6 +71,8 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     databaseUrl: env.DATABASE_URL,
     ...(env.CONNECTA_CX_API_KEY ? { apiKey: env.CONNECTA_CX_API_KEY } : {}),
     authRequired: env.AUTH_REQUIRED,
+    ...(adminApiKey ? { adminApiKey } : {}),
+    adminAuthRequired: env.ADMIN_AUTH_REQUIRED,
     requireEventId: env.REQUIRE_EVENT_ID,
     bodyLimit: env.REQUEST_BODY_LIMIT_BYTES,
     rateLimitMax: env.RATE_LIMIT_MAX,

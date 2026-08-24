@@ -12,7 +12,7 @@ describe('metrics and queries', () => {
     const context = await createTestContext();
     app = context.app;
     repository = context.repository;
-    headers = { 'x-api-key': context.apiKey };
+    headers = { 'x-api-key': context.adminApiKey };
     await repository.create({
       eventId: 'e1',
       contactId: 'c1',

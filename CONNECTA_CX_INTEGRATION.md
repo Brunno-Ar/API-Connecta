@@ -30,7 +30,7 @@ X-API-Key: <API_KEY>
 
 Não envie a API Key no body, na URL ou em parâmetros de consulta. A chamada deverá usar HTTPS em produção.
 
-Se a plataforma não suportar headers personalizados, a operação poderá configurar a API com `AUTH_REQUIRED=false`. Nesse modo, o Connecta CX precisa apenas cadastrar a URL e o body JSON, mas o endpoint ficará sem autenticação própria; por isso essa decisão deve ser confirmada antes da produção e protegida na infraestrutura quando possível.
+Se a plataforma não suportar headers personalizados, a operação poderá configurar a ingestão com `AUTH_REQUIRED=false`. Nesse modo, o Connecta CX precisa apenas cadastrar a URL e o body JSON. Somente essa entrada ficará pública; métricas, interações e payloads continuam protegidos por uma chave administrativa separada.
 
 ## Body
 

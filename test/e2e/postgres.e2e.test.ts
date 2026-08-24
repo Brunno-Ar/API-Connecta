@@ -35,6 +35,8 @@ describe('PostgreSQL end-to-end flow', () => {
       databaseUrl,
       apiKey,
       authRequired: true,
+      adminApiKey: apiKey,
+      adminAuthRequired: true,
       requireEventId: true,
       bodyLimit: 32_768,
       rateLimitMax: 1_000,
@@ -42,7 +44,7 @@ describe('PostgreSQL end-to-end flow', () => {
       corsOrigins: [],
       logLevel: 'silent',
     };
-    app = await buildApp({ config, logger: false });
+    app = buildApp({ config, logger: false });
   }, 120_000);
 
   afterAll(async () => {

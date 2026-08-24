@@ -30,7 +30,7 @@ describe('interaction HTTP flow', () => {
     const detail = await app.inject({
       method: 'GET',
       url: `/api/v1/interactions/${id}`,
-      headers: { 'x-api-key': context.apiKey },
+      headers: { 'x-api-key': context.adminApiKey },
     });
     expect(detail.statusCode).toBe(200);
     expect(detail.json().data.selections).toEqual(
@@ -107,6 +107,23 @@ describe('interaction HTTP flow', () => {
     expect(context.repository.items[0]?.selections).toEqual([
       { key: 'tour_visitacao', value: 'sim' },
     ]);
+
+    const protectedMetrics = await app.inject({ method: 'GET', url: '/api/v1/metrics' });
+    expect(protectedMetrics.statusCode).toBe(401);
+
+    const ingestionKeyCannotReadMetrics = await app.inject({
+      method: 'GET',
+      url: '/api/v1/metrics',
+      headers: { 'x-api-key': context.apiKey },
+    });
+    expect(ingestionKeyCannotReadMetrics.statusCode).toBe(401);
+
+    const authorizedMetrics = await app.inject({
+      method: 'GET',
+      url: '/api/v1/metrics',
+      headers: { 'x-api-key': context.adminApiKey },
+    });
+    expect(authorizedMetrics.statusCode).toBe(200);
   });
 
   it.each([

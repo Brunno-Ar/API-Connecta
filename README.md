@@ -53,19 +53,21 @@ Swagger UI: `http://localhost:3000/docs`. Saúde: `http://localhost:3000/api/v1/
 
 ## Variáveis de ambiente
 
-| Variável                   | Obrigatória/padrão                  | Função                                                            |
-| -------------------------- | ----------------------------------- | ----------------------------------------------------------------- |
-| `DATABASE_URL`             | obrigatória                         | URL PostgreSQL                                                    |
-| `CONNECTA_CX_API_KEY`      | obrigatória se `AUTH_REQUIRED=true` | secret com no mínimo 24 caracteres                                |
-| `AUTH_REQUIRED`            | `true`                              | habilita autenticação; desabilitar somente em ambiente controlado |
-| `REQUIRE_EVENT_ID`         | `false`                             | rejeita ingestões sem `eventId` quando `true`                     |
-| `REQUEST_BODY_LIMIT_BYTES` | `32768`                             | limite total do body                                              |
-| `RATE_LIMIT_MAX`           | `100`                               | máximo de requisições por janela e IP                             |
-| `RATE_LIMIT_WINDOW`        | `1 minute`                          | janela do rate limit                                              |
-| `CORS_ORIGINS`             | vazio                               | origens permitidas, separadas por vírgula; vazio desabilita CORS  |
-| `HOST` / `PORT`            | `0.0.0.0` / `3000`                  | bind HTTP                                                         |
-| `LOG_LEVEL`                | `info`                              | nível Pino                                                        |
-| `NODE_ENV`                 | `development`                       | ambiente                                                          |
+| Variável                   | Obrigatória/padrão                       | Função                                                                    |
+| -------------------------- | ---------------------------------------- | ------------------------------------------------------------------------- |
+| `DATABASE_URL`             | obrigatória                              | URL PostgreSQL; use conexão com pooling em ambiente serverless            |
+| `CONNECTA_CX_API_KEY`      | obrigatória se `AUTH_REQUIRED=true`      | chave de ingestão com no mínimo 24 caracteres                             |
+| `AUTH_REQUIRED`            | `true`                                   | exige a chave de ingestão no POST do Connecta                             |
+| `ADMIN_API_KEY`            | recomendada; fallback para a chave acima | chave separada para métricas e consulta de payloads                       |
+| `ADMIN_AUTH_REQUIRED`      | `true`                                   | protege os endpoints de métricas e interações, mesmo com ingestão pública |
+| `REQUIRE_EVENT_ID`         | `false`                                  | rejeita ingestões sem `eventId` quando `true`                             |
+| `REQUEST_BODY_LIMIT_BYTES` | `32768`                                  | limite total do body                                                      |
+| `RATE_LIMIT_MAX`           | `100`                                    | máximo de requisições por janela e instância                              |
+| `RATE_LIMIT_WINDOW`        | `1 minute`                               | janela do rate limit                                                      |
+| `CORS_ORIGINS`             | vazio                                    | origens permitidas, separadas por vírgula; vazio desabilita CORS          |
+| `HOST` / `PORT`            | `0.0.0.0` / `3000`                       | bind HTTP local; a Vercel gerencia isso em produção                       |
+| `LOG_LEVEL`                | `info`                                   | nível Pino                                                                |
+| `NODE_ENV`                 | `development`                            | ambiente                                                                  |
 
 Nunca publique `.env`. Gere uma chave aleatória longa, armazene-a no secret manager da hospedagem e rotacione-a quando necessário.
 
@@ -154,7 +156,7 @@ Ainda depende do Connecta CX confirmar um identificador único real. Enquanto is
 | `GET`  | `/api/v1/metrics/selections`                    | agrupamento por chave e valor    |
 | `GET`  | `/api/v1/metrics/bots`                          | agrupamento por bot              |
 
-Com `AUTH_REQUIRED=true`, todos, exceto saúde e Swagger, exigem `X-API-Key`. Caso o Connecta CX confirme que não consegue enviar headers, `AUTH_REQUIRED=false` permite chamar a mesma URL somente com o body; essa alternativa deixa o endpoint público e deve ser compensada na infraestrutura com HTTPS, restrição de origem/IP quando disponível e monitoramento. Listas aceitam `page` (padrão 1) e `limit` (padrão 20, máximo 100). Os filtros disponíveis são `botId`, `contactId`, `selectionKey`, `selectionValue`, `from` e `to`. Datas devem ser ISO 8601 com offset, por exemplo `2026-08-20T15:30:00Z`; limites são inclusivos.
+Com `AUTH_REQUIRED=true`, o endpoint de ingestão exige `CONNECTA_CX_API_KEY`. Caso o Connecta CX não consiga enviar headers, `AUTH_REQUIRED=false` permite chamar essa URL somente com o body. Os endpoints de métricas e interações continuam protegidos por `ADMIN_API_KEY` enquanto `ADMIN_AUTH_REQUIRED=true`. Se `ADMIN_API_KEY` não for informada, a chave do Connecta é usada como fallback. Listas aceitam `page` (padrão 1) e `limit` (padrão 20, máximo 100). Os filtros disponíveis são `botId`, `contactId`, `selectionKey`, `selectionValue`, `from` e `to`. Datas devem ser ISO 8601 com offset, por exemplo `2026-08-20T15:30:00Z`; limites são inclusivos.
 
 Filtros de seleção definem o conjunto de interações que contém o par informado. As agregações então descrevem todas as escolhas desse conjunto, permitindo analisar combinações. Para obter só uma chave no resultado, filtre o array retornado no consumidor ou consulte o par exato.
 
@@ -201,7 +203,7 @@ Formato uniforme:
 
 Logs são JSON estruturados e incluem request ID, bot/contact/event/interaction IDs quando úteis. Eventos de aplicação incluem `interaction_received`, `interaction_created`, `duplicate_interaction`, `invalid_payload`, `invalid_authentication`, `database_error` e `metrics_query`. API Keys e tokens nunca são registrados; o payload completo também não é logado.
 
-Controles implementados: comparação constante de hashes da API Key, limite de body, rate limit, Helmet, CORS fechado por padrão, Zod/Ajv, tipos primitivos, chaves seguras, SQL parametrizado, transação, constraint de idempotência e respostas sem stack trace. Em produção, HTTPS deve terminar no load balancer/proxy e o PostgreSQL deve usar TLS/rede privada, backup, menor privilégio e observabilidade. Para múltiplas réplicas, troque o rate limit em memória por storage compartilhado (por exemplo Redis).
+Controles implementados: chaves separáveis para ingestão e administração, comparação constante de hashes, limite de body, rate limit, Helmet, CORS fechado por padrão, Zod/Ajv, tipos primitivos, chaves seguras, SQL parametrizado, transação, constraint de idempotência e respostas sem stack trace. Em produção, HTTPS deve terminar no load balancer/proxy e o PostgreSQL deve usar TLS/rede privada, backup, menor privilégio e observabilidade. Na Vercel, o rate limit atual vale por instância; para um limite global, use storage compartilhado ou o Vercel Firewall.
 
 Armazene somente identificadores necessários. `rawPayload` preserva o JSON recebido e pode conter dados adicionados futuramente; mantenha o contrato restrito, defina retenção e controle o acesso ao endpoint de detalhes.
 
@@ -223,6 +225,37 @@ O E2E inicia um container PostgreSQL exclusivo, aplica a migration e valida `HTT
 
 ## Deploy
 
+### Vercel
+
+A Vercel detecta o `server.ts` da raiz como aplicação Fastify e a executa como uma Function. Esse entrypoint exporta a instância pronta e evita ambiguidade com a fábrica interna `src/app.ts`. Não configure Build Command ou Output Directory manualmente. O script `postinstall` gera o Prisma Client durante cada build.
+
+Use um PostgreSQL gerenciado com connection pooling, como Prisma Postgres, Neon ou Supabase. O PostgreSQL do `docker-compose.yml` é somente local.
+
+Fluxo recomendado:
+
+```bash
+# depois de criar o banco e obter DATABASE_URL
+npm run db:migrate
+
+# deploy por CLI; alternativamente importe o repositório no dashboard
+npx vercel
+npx vercel --prod
+```
+
+Cadastre todas as variáveis da seção anterior para Production. Não coloque `prisma migrate deploy` no início da Function nem execute migrations a cada requisição. Aplique migrations como uma etapa única e controlada de CI/CD antes da liberação.
+
+Depois do deploy, valide:
+
+```text
+GET  https://<projeto>.vercel.app/api/v1/health
+POST https://<projeto>.vercel.app/api/v1/integrations/connecta-cx/interactions
+GET  https://<projeto>.vercel.app/docs
+```
+
+O procedimento completo está em [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md).
+
+### Docker
+
 O `Dockerfile` usa multi-stage build e executa `prisma migrate deploy` antes do servidor. Exemplo:
 
 ```bash
@@ -241,7 +274,7 @@ O material que pode ser encaminhado ao fornecedor está em [CONNECTA_CX_INTEGRAT
 
 ## Troubleshooting
 
-- **Servidor não inicia:** valide `DATABASE_URL` e, se `AUTH_REQUIRED=true`, uma API Key com 24+ caracteres.
+- **Servidor não inicia:** valide `DATABASE_URL`, `CONNECTA_CX_API_KEY` e `ADMIN_API_KEY` conforme as flags de autenticação.
 - **Health 503:** confirme conectividade, credenciais, migrations e TLS do PostgreSQL.
 - **401:** confirme o header exato `X-API-Key`; não use query string.
 - **409:** o evento já foi recebido; use `existingInteractionId` para rastrear.

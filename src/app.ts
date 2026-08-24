@@ -18,7 +18,7 @@ export interface BuildAppOptions {
   logger?: boolean;
 }
 
-export async function buildApp(options: BuildAppOptions): Promise<FastifyInstance> {
+export function buildApp(options: BuildAppOptions): FastifyInstance {
   const app = Fastify({
     logger: options.logger === false ? false : { level: options.config.logLevel },
     bodyLimit: options.config.bodyLimit,
@@ -33,15 +33,15 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     app.addHook('onClose', async () => prisma.$disconnect());
   }
 
-  await app.register(helmet, { contentSecurityPolicy: false });
-  await app.register(cors, {
+  app.register(helmet, { contentSecurityPolicy: false });
+  app.register(cors, {
     origin: options.config.corsOrigins.length === 0 ? false : options.config.corsOrigins,
   });
-  await app.register(rateLimit, {
+  app.register(rateLimit, {
     max: options.config.rateLimitMax,
     timeWindow: options.config.rateLimitWindow,
   });
-  await app.register(swagger, {
+  app.register(swagger, {
     openapi: {
       info: {
         title: 'Connecta CX Metrics API',
@@ -56,12 +56,13 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
       },
     },
   });
-  await app.register(swaggerUi, { routePrefix: '/docs' });
+  app.register(swaggerUi, { routePrefix: '/docs' });
 
   registerRoutes(
     app,
     repository,
     createApiKeyGuard(options.config.authRequired, options.config.apiKey),
+    createApiKeyGuard(options.config.adminAuthRequired, options.config.adminApiKey),
     options.config.requireEventId,
   );
 

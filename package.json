@@ -2,12 +2,14 @@
   "name": "connecta-cx-metrics-api",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "API standalone para ingestão e métricas de interações do Connecta CX",
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",

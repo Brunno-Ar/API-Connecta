@@ -9,6 +9,8 @@ export const testConfig: AppConfig = {
   databaseUrl: 'postgresql://unused',
   apiKey: 'test-api-key-with-24-characters',
   authRequired: true,
+  adminApiKey: 'test-admin-key-with-24-characters',
+  adminAuthRequired: true,
   requireEventId: false,
   bodyLimit: 32_768,
   rateLimitMax: 1_000,
@@ -19,10 +21,15 @@ export const testConfig: AppConfig = {
 
 export async function createTestContext(overrides: Partial<AppConfig> = {}) {
   const repository = new MemoryInteractionRepository();
-  const app = await buildApp({
+  const app = buildApp({
     config: { ...testConfig, ...overrides },
     repository,
     logger: false,
   });
-  return { app, repository, apiKey: testConfig.apiKey! };
+  return {
+    app,
+    repository,
+    apiKey: testConfig.apiKey!,
+    adminApiKey: testConfig.adminApiKey!,
+  };
 }

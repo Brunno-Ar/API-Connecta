@@ -27,7 +27,8 @@ const filterQueryJsonSchema = {
 export function registerRoutes(
   app: FastifyInstance,
   repository: InteractionRepository,
-  guard: preHandlerHookHandler,
+  ingestionGuard: preHandlerHookHandler,
+  adminGuard: preHandlerHookHandler,
   requireEventId: boolean,
 ) {
   const interactions = new InteractionService(repository, requireEventId);
@@ -45,7 +46,7 @@ export function registerRoutes(
   app.post(
     '/api/v1/integrations/connecta-cx/interactions',
     {
-      preHandler: guard,
+      preHandler: ingestionGuard,
       schema: {
         tags: ['Connecta CX'],
         summary: 'Receive a completed bot interaction',
@@ -90,7 +91,7 @@ export function registerRoutes(
   app.get(
     '/api/v1/interactions',
     {
-      preHandler: guard,
+      preHandler: adminGuard,
       schema: {
         tags: ['Interactions'],
         summary: 'List received interactions',
@@ -137,7 +138,7 @@ export function registerRoutes(
   app.get(
     '/api/v1/interactions/:id',
     {
-      preHandler: guard,
+      preHandler: adminGuard,
       schema: {
         tags: ['Interactions'],
         summary: 'Get interaction details',
@@ -163,7 +164,7 @@ export function registerRoutes(
     app.get(
       path,
       {
-        preHandler: guard,
+        preHandler: adminGuard,
         schema: {
           tags: ['Metrics'],
           summary,
