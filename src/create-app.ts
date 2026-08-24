@@ -8,6 +8,7 @@ import type { AppConfig } from './config/env.js';
 import type { InteractionRepository } from './application/interaction-repository.js';
 import { AppError, DuplicateInteractionError } from './domain/errors.js';
 import { createApiKeyGuard } from './http/auth.js';
+import { registerDocumentationPage } from './http/docs-page.js';
 import { registerRoutes } from './http/routes.js';
 import { createPrismaClient } from './infrastructure/prisma.js';
 import { PrismaInteractionRepository } from './infrastructure/prisma-interaction-repository.js';
@@ -59,15 +60,18 @@ export function buildApp(
       },
     },
   });
+  app.register((routesApp, _pluginOptions, done) => {
+    registerDocumentationPage(routesApp);
+    registerRoutes(
+      routesApp,
+      repository,
+      createApiKeyGuard(options.config.authRequired, options.config.apiKey),
+      createApiKeyGuard(options.config.adminAuthRequired, options.config.adminApiKey),
+      options.config.requireEventId,
+    );
+    done();
+  });
   app.register(swaggerUi, { routePrefix: '/docs' });
-
-  registerRoutes(
-    app,
-    repository,
-    createApiKeyGuard(options.config.authRequired, options.config.apiKey),
-    createApiKeyGuard(options.config.adminAuthRequired, options.config.adminApiKey),
-    options.config.requireEventId,
-  );
 
   app.setNotFoundHandler((_request, reply) => {
     void reply

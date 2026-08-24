@@ -19,7 +19,7 @@ A API não consulta o Connecta CX. O Connecta CX envia uma chamada para uma úni
 - **PostgreSQL 17:** `jsonb`, constraints, índices, transações e agregações maduras.
 - **Prisma:** client tipado e migrations. Consultas agregadas usam SQL parametrizado pelo Prisma.
 - **Vitest:** testes unitários/HTTP e end-to-end com PostgreSQL isolado via Testcontainers.
-- **OpenAPI 3 + Swagger UI:** contrato navegável em `/docs`.
+- **Documentação pública + OpenAPI 3:** guia em português em `/doc` e Swagger técnico em `/docs`.
 
 Responsabilidades:
 
@@ -49,7 +49,7 @@ npm run dev
 
 No PowerShell, use `Copy-Item .env.example .env` no lugar de `cp`.
 
-Swagger UI: `http://localhost:3000/docs`. Saúde: `http://localhost:3000/api/v1/health`.
+Documentação: `http://localhost:3000/doc`. Swagger UI: `http://localhost:3000/docs`. Saúde: `http://localhost:3000/api/v1/health`.
 
 ## Variáveis de ambiente
 
@@ -227,7 +227,7 @@ O E2E inicia um container PostgreSQL exclusivo, aplica a migration e valida `HTT
 
 ### Vercel
 
-A Vercel detecta o `server.ts` da raiz e o executa como uma Function. Esse entrypoint exporta um handler Node explícito que encaminha a requisição para a instância Fastify, evitando dependência da inferência estática da plataforma e ambiguidade com a fábrica interna `src/create-app.ts`. Não configure Build Command ou Output Directory manualmente. O script `postinstall` gera o Prisma Client durante cada build.
+A Vercel detecta o `server.ts` da raiz e o executa como uma Function. Esse entrypoint exporta um handler Node explícito que encaminha a requisição para a instância Fastify, evitando dependência da inferência estática da plataforma e ambiguidade com a fábrica interna `src/create-app.ts`. Não configure Build Command ou Output Directory manualmente. O script `postinstall` gera o Prisma Client durante cada build. O script `vercel-build` aplica migrations pendentes de forma idempotente antes da compilação.
 
 Use um PostgreSQL gerenciado com connection pooling, como Prisma Postgres, Neon ou Supabase. O PostgreSQL do `docker-compose.yml` é somente local.
 
@@ -242,7 +242,7 @@ npx vercel
 npx vercel --prod
 ```
 
-Cadastre todas as variáveis da seção anterior para Production. Não coloque `prisma migrate deploy` no início da Function nem execute migrations a cada requisição. Aplique migrations como uma etapa única e controlada de CI/CD antes da liberação.
+Cadastre todas as variáveis da seção anterior para Production. Não coloque `prisma migrate deploy` no início da Function nem execute migrations a cada requisição. Neste projeto, ele roda uma vez na etapa `vercel-build`, antes da liberação da Function.
 
 Depois do deploy, valide:
 
